@@ -10,7 +10,6 @@
     x:Class="Mandelbrot.MainPage">
     <Grid>
         <forms:SKCanvasView x:Name="MandelCanvas"
-                            BackgroundColor="Aqua"
                             PaintSurface="SKCanvasView_OnPaintSurface" />
     </Grid>
 </ContentPage>
