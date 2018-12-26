@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Mandelbrot.Models;
 using SkiaSharp;
 using SkiaSharp.Views.Forms;
 using Xamarin.Forms;
@@ -12,7 +15,36 @@ namespace Mandelbrot
         public MainPage()
         {
             InitializeComponent();
+
+            this.SetBinding(MainPage.DisplayPointsProperty, nameof(DisplayPoints), BindingMode.OneWay);
         }
+
+        public static readonly BindableProperty DisplayPointsProperty = BindableProperty.Create(
+            "DisplayPoints",
+            typeof(List<DisplayPoint>),
+            typeof(MainPage),
+            null,
+            BindingMode.OneWay,
+            propertyChanged: OnDisplayPointsChanged
+        );
+
+        private static void OnDisplayPointsChanged(BindableObject bindable, object oldvalue, object newvalue)
+        {
+            ((MainPage) bindable).RefreshMandelbrotCanvas();
+        }
+
+        private void RefreshMandelbrotCanvas()
+        {
+            MandelCanvas.InvalidateSurface();
+        }
+
+        public List<DisplayPoint> DisplayPoints
+        {
+            get => (List<DisplayPoint>) GetValue(DisplayPointsProperty);
+
+            set => SetValue(DisplayPointsProperty, value);
+        }
+
 
         private void SKCanvasView_OnPaintSurface(object sender, SKPaintSurfaceEventArgs e)
         {
@@ -27,38 +59,29 @@ namespace Mandelbrot
 
             var maxIterations = 100;
 
+            if (DisplayPoints?.Any() != true)
+            {
+                return;
+            }
+
             using (var bitmapCanvas = new SKCanvas(bitmap))
             {
-                for (var pixX = 0; pixX < info.Width; pixX++)
+                foreach (var displayPoint in DisplayPoints)
                 {
-                    for (var pixY = 0; pixY < info.Height; pixY++)
+                    var color = SKColors.Black;
+                    if (displayPoint.DistanceToCenter >= 2 * 2)
                     {
-                        // Map pixel coordinates to Mandelbrot scale, i.e. -2.5 < x < 1 and -1 < y 1 
-                        var mandelX = MapToHorizontalMandelbrotScale(pixX,
-                            0.0f,
-                            info.Width);
-                        var mandelY = MapToVerticalMandelbrotScale(pixY,
-                            0.0f,
-                            info.Height);
-
-                        var mandelOrbitX = 0.0f;
-                        var mandelOrbitY = 0.0f;
-                        var currentIteration = 0;
-
-                        while (mandelOrbitX * mandelOrbitX + mandelOrbitY * mandelOrbitY <= 2 * 2
-                               && currentIteration < maxIterations)
-                        {
-                            var mandelOrbitTempX = mandelOrbitX * mandelOrbitX - mandelOrbitY * mandelOrbitY + mandelX;
-                            mandelOrbitY = 2 * mandelOrbitX * mandelOrbitY + mandelY;
-                            mandelOrbitX = mandelOrbitTempX;
-                            currentIteration++;
-                        }
-
-                        var pixelColor = currentIteration < maxIterations ? SKColors.Black : SKColors.Red;
-                        bitmapCanvas.DrawPoint(pixX, pixY, pixelColor);
+                        var r = displayPoint.Iterations % 256;
+                        var g = (displayPoint.Iterations * 2) % 256;
+                        var b = (displayPoint.Iterations * 3) % 256;
+                        color = Color.FromRgb(r, g, b).ToSKColor();
                     }
+
+
+                    bitmapCanvas.DrawPoint(displayPoint.Coordinates.X, displayPoint.Coordinates.Y, color);
                 }
             }
+
 
             canvas.DrawBitmap(bitmap, -info.Width / 2.0f, -info.Height / 2.0f);
         }

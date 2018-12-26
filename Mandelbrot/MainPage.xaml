@@ -7,9 +7,28 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:Mandelbrot"
     xmlns:forms="clr-namespace:SkiaSharp.Views.Forms;assembly=SkiaSharp.Views.Forms"
-    x:Class="Mandelbrot.MainPage">
+    xmlns:viewModels="clr-namespace:Mandelbrot.ViewModels;assembly=Mandelbrot"
+    xmlns:mandelbrot="clr-namespace:Mandelbrot;assembly=Mandelbrot"
+    x:Class="Mandelbrot.MainPage"
+    >
+
+    <ContentPage.BindingContext>
+        <viewModels:MainPageViewModel />
+    </ContentPage.BindingContext>
+
+
     <Grid>
-        <forms:SKCanvasView x:Name="MandelCanvas"
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Button Text="Visualize Set"
+                Command="{Binding ComputeDisplayPointsCommand}" />
+
+
+        <forms:SKCanvasView Grid.Row="1"
+                            x:Name="MandelCanvas"
                             PaintSurface="SKCanvasView_OnPaintSurface" />
     </Grid>
 </ContentPage>
