@@ -1,19 +1,16 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml
+    version = "1.0"
+    encoding = "utf-8" ?>
+
 <ContentPage
-    xmlns      = "http://xamarin.com/schemas/2014/forms"
-    xmlns:x     = "http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local = "clr-namespace:Mandelbrot"
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:Mandelbrot"
     xmlns:forms="clr-namespace:SkiaSharp.Views.Forms;assembly=SkiaSharp.Views.Forms"
-    x:Class     = "Mandelbrot.MainPage">
-    <StackLayout>
-        <!-- Place new controls here -->
-        <Label
-            Text              = "Welcome to Xamarin.Forms!"
-            HorizontalOptions = "Center"
-            VerticalOptions   = "Center" />
-        <forms:SKCanvasView x:Name="MandelCanvas" 
-                            PaintSurface="SKCanvasView_OnPaintSurface"
-                            VerticalOptions="CenterAndExpand"
-                            HorizontalOptions="Center"/>
-    </StackLayout>
+    x:Class="Mandelbrot.MainPage">
+    <Grid>
+        <forms:SKCanvasView x:Name="MandelCanvas"
+                            BackgroundColor="Aqua"
+                            PaintSurface="SKCanvasView_OnPaintSurface" />
+    </Grid>
 </ContentPage>
