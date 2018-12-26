@@ -16,6 +16,7 @@ namespace Mandelbrot.ViewModels
         private List<DisplayPoint> _displayPoints;
         private ICommand _computeDisplayPointsCommand;
         private MandelbrotService _mandelbrotService;
+        private CanvasInfo _canvasInfo;
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
@@ -27,17 +28,26 @@ namespace Mandelbrot.ViewModels
 
         public MainPageViewModel()
         {
-            _computeDisplayPointsCommand = new Command(() => RefreshDisplayPoints());
+            _computeDisplayPointsCommand = new Command(RefreshDisplayPoints, CanRefreshDisplayPoints);
             _displayPoints = new List<DisplayPoint>();
 
             _mandelbrotService = new MandelbrotService();
         }
 
+        private bool CanRefreshDisplayPoints()
+        {
+            return true;
+//            return CanvasInfo != null;
+        }
+
         private void RefreshDisplayPoints()
         {
             DisplayPoints.Clear();
-            _mandelbrotService.ProduceDisplayPoints(new Range(0, 600, 0, 400),
-                new Range(0, 600, 0, 400),
+            _mandelbrotService.ProduceDisplayPoints(
+//                new Range(0, 1200, 0, 800),
+//                new Range(0, 1200, 0, 800),
+                CanvasInfo.CanvasDimensions,
+                CanvasInfo.CanvasPartitionDimentions,
                 displayPointsBatch =>
                 {
                     DisplayPoints = DisplayPoints.Concat(displayPointsBatch).ToList();
@@ -52,6 +62,15 @@ namespace Mandelbrot.ViewModels
             set => _computeDisplayPointsCommand = value;
         }
 
+        public CanvasInfo CanvasInfo
+        {
+            get => _canvasInfo;
+            set
+            {
+                _canvasInfo = value;
+                OnPropertyChanged();
+            }
+        }
 
         public List<DisplayPoint> DisplayPoints
         {

@@ -10,7 +10,7 @@
     xmlns:viewModels="clr-namespace:Mandelbrot.ViewModels;assembly=Mandelbrot"
     xmlns:mandelbrot="clr-namespace:Mandelbrot;assembly=Mandelbrot"
     x:Class="Mandelbrot.MainPage"
-    >
+    x:Name="ME">
 
     <ContentPage.BindingContext>
         <viewModels:MainPageViewModel />

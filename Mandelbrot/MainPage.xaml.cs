@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Mandelbrot.Models;
+using Mandelbrot.Services;
 using SkiaSharp;
 using SkiaSharp.Views.Forms;
 using Xamarin.Forms;
@@ -17,6 +18,7 @@ namespace Mandelbrot
             InitializeComponent();
 
             this.SetBinding(MainPage.DisplayPointsProperty, nameof(DisplayPoints), BindingMode.OneWay);
+            this.SetBinding(MainPage.CanvasInfoProperty, nameof(CanvasInfo), BindingMode.OneWayToSource);
         }
 
         public static readonly BindableProperty DisplayPointsProperty = BindableProperty.Create(
@@ -38,11 +40,32 @@ namespace Mandelbrot
             MandelCanvas.InvalidateSurface();
         }
 
+
         public List<DisplayPoint> DisplayPoints
         {
             get => (List<DisplayPoint>) GetValue(DisplayPointsProperty);
 
             set => SetValue(DisplayPointsProperty, value);
+        }
+
+        public static readonly BindableProperty CanvasInfoProperty = BindableProperty.Create(
+            "CanvasInfo",
+            typeof(CanvasInfo),
+            typeof(MainPage),
+            null,
+            BindingMode.TwoWay,
+            propertyChanged: OnCanvasInfoChanged
+        );
+
+        private static void OnCanvasInfoChanged(BindableObject bindable, object oldvalue, object newvalue)
+        {
+            Console.WriteLine($"New CanvasInfo: {newvalue}");
+        }
+
+        public CanvasInfo CanvasInfo
+        {
+            get => (CanvasInfo) GetValue(CanvasInfoProperty);
+            set => SetValue(CanvasInfoProperty, value);
         }
 
 
@@ -51,6 +74,12 @@ namespace Mandelbrot
             var surface = e.Surface;
             var canvas = surface.Canvas;
             var info = e.Info;
+
+            CanvasInfo = new CanvasInfo
+            {
+                CanvasDimensions = new Range(0, info.Width, 0, info.Height),
+                CanvasPartitionDimentions = new Range(0, info.Width, 0, info.Height)
+            };
 
             canvas.Clear();
             canvas.Translate(info.Width / 2.0f, info.Height / 2.0f);
