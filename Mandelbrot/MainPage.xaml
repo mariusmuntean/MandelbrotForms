@@ -38,9 +38,18 @@
                 <RowDefinition />
                 <RowDefinition />
             </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
             <Label x:Name="LastDrawDurationLbl" Grid.Row="0" Text="Last Draw duration:" />
-            <Label x:Name="SchedulingBitmapsDurationLbl" Grid.Row="1" Text="Last Draw duration:" />
+            <Label x:Name="SchedulingBitmapsDurationLbl" Grid.Row="1" Text="Scheduling bitmaps duration:" />
+
+            <Label x:Name="TotalBitmapComputationLbl" Grid.Row="0" Grid.Column="1" Text="Computing bitmaps duration: " />
+            <Label x:Name="placeholderLbl" Grid.Row="1" Grid.Column="1" Text="?:" />
+
+
         </Grid>
     </Grid>
 </ContentPage>

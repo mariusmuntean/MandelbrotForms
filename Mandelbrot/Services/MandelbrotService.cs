@@ -7,7 +7,7 @@ namespace Mandelbrot.Services
 {
     public class MandelbrotService
     {
-        private const int MaxIterations = 100;
+        public const int MaxIterations = 100;
 
         /// <summary>
         /// Produces <see cref="DisplayPoint"/> for each point in the desired partition.

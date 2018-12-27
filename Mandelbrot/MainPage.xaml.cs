@@ -16,8 +16,6 @@ namespace Mandelbrot
 {
     public partial class MainPage : ContentPage
     {
-        Random rand = new Random();
-
         public MainPage()
         {
             InitializeComponent();
@@ -43,18 +41,22 @@ namespace Mandelbrot
         private void RefreshMandelbrotCanvas()
         {
             _mandelbrotBitmaps = new ConcurrentBag<SKBitmap>();
+            _colors = new ConcurrentDictionary<int, SKColor>();
 
             if (DisplayPoints?.Any() != true)
             {
+                Device.BeginInvokeOnMainThread(() => { MandelCanvas.InvalidateSurface(); });
                 return;
             }
 
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
+            var schedulingBitmapsStopwatch = new Stopwatch();
+            schedulingBitmapsStopwatch.Start();
 
             var chunksSize = DisplayPoints.Count / Environment.ProcessorCount;
             Task.Run(() =>
             {
+                var computingBitmapsStopwatch = new Stopwatch();
+                computingBitmapsStopwatch.Start();
                 Parallel.ForEach(DisplayPoints.GetChunks(chunksSize), pointsChunk =>
                 {
                     var currentBitmap = new SKBitmap(CanvasInfo.CanvasDimensions.Width, CanvasInfo.CanvasDimensions.Height, false);
@@ -63,15 +65,10 @@ namespace Mandelbrot
                     {
                         foreach (var displayPoint in pointsChunk)
                         {
-                            var color = SKColors.Black;
-                            if (displayPoint.DistanceToCenter >= 2 * 2)
-                            {
-                                var r = displayPoint.Iterations % 256;
-                                var g = (displayPoint.Iterations * 2) % 256;
-                                var b = (displayPoint.Iterations * 3) % 256;
-                                color = Color.FromRgb(r, g, b).ToSKColor();
-                            }
-
+                            var h = ((float) displayPoint.Iterations / MandelbrotService.MaxIterations);
+                            var s = 1 / h;
+                            var l = 1 / h;
+                            var color = _colors.GetOrAdd(displayPoint.Iterations, SKColor.FromHsl(h, s, l));
                             bitmapCanvas.DrawPoint(displayPoint.Coordinates.X, displayPoint.Coordinates.Y, color);
                         }
                     }
@@ -80,10 +77,15 @@ namespace Mandelbrot
 
                     Device.BeginInvokeOnMainThread(() => { MandelCanvas.InvalidateSurface(); });
                 });
+
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    TotalBitmapComputationLbl.Text = $"Total bitmap computation took: {computingBitmapsStopwatch.ElapsedMilliseconds} ms";
+                });
             });
 
 
-            SchedulingBitmapsDurationLbl.Text = $"Scheduling bitmaps took {stopwatch.ElapsedMilliseconds} ms";
+            SchedulingBitmapsDurationLbl.Text = $"Scheduling bitmaps took {schedulingBitmapsStopwatch.ElapsedMilliseconds} ms";
         }
 
 
@@ -104,6 +106,7 @@ namespace Mandelbrot
         );
 
         private ConcurrentBag<SKBitmap> _mandelbrotBitmaps;
+        private ConcurrentDictionary<int, SKColor> _colors;
 
         private static void OnCanvasInfoChanged(BindableObject bindable, object oldvalue, object newvalue)
         {
