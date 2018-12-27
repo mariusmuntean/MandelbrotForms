@@ -4,18 +4,19 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Mandelbrot.Abstractions;
 using Mandelbrot.Annotations;
 using Mandelbrot.Models;
-using Mandelbrot.Services;
 using Xamarin.Forms;
 
 namespace Mandelbrot.ViewModels
 {
     public class MainPageViewModel : INotifyPropertyChanged
     {
-        private List<DisplayPoint> _displayPoints;
-        private MandelbrotService _mandelbrotService;
-        private CanvasInfo _canvasInfo;
+        private List<MandelbrotPoint> _displayPoints;
+
+        private ComplexPlaneArea _desiredComplexPlaneArea;
+        private readonly IMandelbrotService _mandelbrotService;
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
@@ -28,43 +29,37 @@ namespace Mandelbrot.ViewModels
         public MainPageViewModel()
         {
             ComputeDisplayPointsCommand = new Command(RefreshDisplayPoints, CanRefreshDisplayPoints);
-            _displayPoints = new List<DisplayPoint>();
+            _displayPoints = new List<MandelbrotPoint>();
 
-            _mandelbrotService = new MandelbrotService();
+            _mandelbrotService = DependencyService.Resolve<IMandelbrotService>();
         }
 
         private bool CanRefreshDisplayPoints()
         {
-            return CanvasInfo != null;
+            return !DesiredComplexPlaneArea.Equals(ComplexPlaneArea.None);
         }
 
         private void RefreshDisplayPoints()
         {
             DisplayPoints.Clear();
 
-            Task.Run(async () =>
-            {
-                await _mandelbrotService.ProduceDisplayPoints(
-                    CanvasInfo.CanvasDimensions,
-                    CanvasInfo.CanvasPartitionDimentions,
-                    displayPointsBatch => { DisplayPoints = DisplayPoints.Concat(displayPointsBatch).ToList(); });
-            });
+            Task.Run(async () => { DisplayPoints = await _mandelbrotService.ProduceDisplayPoints(DesiredComplexPlaneArea, 0.001f); });
         }
 
         public ICommand ComputeDisplayPointsCommand { get; set; }
 
-        public CanvasInfo CanvasInfo
+        public ComplexPlaneArea DesiredComplexPlaneArea
         {
-            get => _canvasInfo;
+            get => _desiredComplexPlaneArea;
             set
             {
-                _canvasInfo = value;
+                _desiredComplexPlaneArea = value;
                 OnPropertyChanged();
                 (ComputeDisplayPointsCommand as Command)?.ChangeCanExecute();
             }
         }
 
-        public List<DisplayPoint> DisplayPoints
+        public List<MandelbrotPoint> DisplayPoints
         {
             get => _displayPoints;
             set
