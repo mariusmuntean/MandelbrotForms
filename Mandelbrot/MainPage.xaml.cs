@@ -57,14 +57,15 @@ namespace Mandelbrot
             {
                 var computingBitmapsStopwatch = new Stopwatch();
                 computingBitmapsStopwatch.Start();
-                Parallel.ForEach(DisplayPoints.GetChunks(chunksSize), pointsChunk =>
+                Parallel.ForEach(DisplayPoints.GetListChunks(chunksSize), pointsChunk =>
                 {
                     var currentBitmap = new SKBitmap(CanvasInfo.CanvasDimensions.Width, CanvasInfo.CanvasDimensions.Height, false);
 
                     using (var bitmapCanvas = new SKCanvas(currentBitmap))
                     {
-                        foreach (var displayPoint in pointsChunk)
+                        for (var i = 0; i < pointsChunk.Count; i++)
                         {
+                            var displayPoint = pointsChunk[i];
                             var h = ((float) displayPoint.Iterations / MandelbrotService.MaxIterations);
                             var s = 1 / h;
                             var l = 1 / h;
