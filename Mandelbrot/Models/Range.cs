@@ -15,7 +15,12 @@ namespace Mandelbrot.Models
 
         public int HorizontalMin { get; set; }
         public int HorizontalMax { get; set; }
+
+        public int Width => HorizontalMax - HorizontalMin;
+
         public int VerticalMin { get; set; }
         public int VerticalMax { get; set; }
+
+        public int Height => VerticalMax - VerticalMin;
     }
 }

@@ -15,7 +15,7 @@ namespace Mandelbrot.Services
         /// </summary>
         /// <param name="originalRange">The display area to be mapped to the Mandelbrot range, i.e. -2.5 < x < 1 and -1 < y < 1</param>
         /// <param name="originalRangePartition">A partition within the original range. <see cref="DisplayPoint"/>s will be produced only for this partition</param>
-        /// <param name="onPartitionSliceReady">Handler to be invoked each time a new batch of <see cref="DisplayPoint"/>s is ready</param>
+        /// <param name="OnPartitionSliceReady">Handler to be invoked each time a new batch of <see cref="DisplayPoint"/>s is ready</param>
         /// <returns></returns>
         public async Task ProduceDisplayPoints(Range originalRange,
             Range originalRangePartition,

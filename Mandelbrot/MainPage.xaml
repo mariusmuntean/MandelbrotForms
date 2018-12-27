@@ -21,6 +21,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <Button Text="Visualize Set"
@@ -30,5 +31,16 @@
         <forms:SKCanvasView Grid.Row="1"
                             x:Name="MandelCanvas"
                             PaintSurface="SKCanvasView_OnPaintSurface" />
+
+        <!-- Stats -->
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <Label x:Name="LastDrawDurationLbl" Grid.Row="0" Text="Last Draw duration:" />
+            <Label x:Name="SchedulingBitmapsDurationLbl" Grid.Row="1" Text="Last Draw duration:" />
+        </Grid>
     </Grid>
 </ContentPage>
