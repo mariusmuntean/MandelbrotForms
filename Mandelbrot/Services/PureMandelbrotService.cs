@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Mandelbrot.Abstractions;
@@ -21,7 +20,7 @@ namespace Mandelbrot.Services
         /// <param name="complexPlaneArea">The display area to be mapped to the Mandelbrot range, i.e. -2.5 < x < 1 and -1 < y < 1</param>
         /// <param name="stepSize"></param>
         /// <returns></returns>
-        public Task<List<MandelbrotPoint>> ProduceDisplayPoints(ComplexPlaneArea complexPlaneArea, float stepSize)
+        public Task<Models.Mandelbrot> ProduceDisplayPoints(ComplexPlaneArea complexPlaneArea, float stepSize)
         {
             return Task.Run(() =>
             {
@@ -53,7 +52,15 @@ namespace Mandelbrot.Services
                     }
                 }
 
-                return displayPoints;
+
+                return new Models.Mandelbrot
+                {
+                    Points = displayPoints,
+                    TopLeft = new Complex(complexPlaneArea.MinRe, complexPlaneArea.MaxIm),
+                    BottomRight = new Complex(complexPlaneArea.MaxRe, complexPlaneArea.MinIm),
+                    Width = (int) ((complexPlaneArea.MaxRe - complexPlaneArea.MinRe) / stepSize),
+                    Height = (int) ((complexPlaneArea.MaxIm - complexPlaneArea.MinIm) / stepSize)
+                };
             });
         }
     }

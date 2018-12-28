@@ -13,7 +13,7 @@ namespace Mandelbrot.ViewModels
 {
     public class MainPageViewModel : INotifyPropertyChanged
     {
-        private List<MandelbrotPoint> _displayPoints;
+        private Models.Mandelbrot _mandelbrot;
 
         private ComplexPlaneArea _desiredComplexPlaneArea;
         private readonly IMandelbrotService _mandelbrotService;
@@ -29,7 +29,6 @@ namespace Mandelbrot.ViewModels
         public MainPageViewModel()
         {
             ComputeDisplayPointsCommand = new Command(RefreshDisplayPoints, CanRefreshDisplayPoints);
-            _displayPoints = new List<MandelbrotPoint>();
 
             _mandelbrotService = DependencyService.Resolve<IMandelbrotService>();
         }
@@ -41,9 +40,9 @@ namespace Mandelbrot.ViewModels
 
         private void RefreshDisplayPoints()
         {
-            DisplayPoints.Clear();
+            Mandelbrot = null;
 
-            Task.Run(async () => { DisplayPoints = await _mandelbrotService.ProduceDisplayPoints(DesiredComplexPlaneArea, 0.001f); });
+            Task.Run(async () => { Mandelbrot = await _mandelbrotService.ProduceDisplayPoints(DesiredComplexPlaneArea, 0.001f); });
         }
 
         public ICommand ComputeDisplayPointsCommand { get; set; }
@@ -59,12 +58,12 @@ namespace Mandelbrot.ViewModels
             }
         }
 
-        public List<MandelbrotPoint> DisplayPoints
+        public Models.Mandelbrot Mandelbrot
         {
-            get => _displayPoints;
+            get => _mandelbrot;
             set
             {
-                _displayPoints = value;
+                _mandelbrot = value;
                 OnPropertyChanged();
             }
         }

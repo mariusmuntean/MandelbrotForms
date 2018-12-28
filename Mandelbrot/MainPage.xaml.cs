@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,13 +21,13 @@ namespace Mandelbrot
         {
             InitializeComponent();
 
-            this.SetBinding(MainPage.DisplayPointsProperty, nameof(DisplayPoints), BindingMode.OneWay);
+            this.SetBinding(MainPage.MandelbrotProperty, nameof(Mandelbrot), BindingMode.OneWay);
             this.SetBinding(MainPage.DesiredComplexPlaneAreaProperty, nameof(DesiredComplexPlaneArea), BindingMode.OneWayToSource);
         }
 
-        public static readonly BindableProperty DisplayPointsProperty = BindableProperty.Create(
-            "DisplayPoints",
-            typeof(List<MandelbrotPoint>),
+        public static readonly BindableProperty MandelbrotProperty = BindableProperty.Create(
+            "Mandelbrot",
+            typeof(Models.Mandelbrot),
             typeof(MainPage),
             null,
             BindingMode.OneWay,
@@ -40,11 +39,10 @@ namespace Mandelbrot
             ((MainPage) bindable).RefreshMandelbrotCanvas();
         }
 
-        public List<MandelbrotPoint> DisplayPoints
+        public Models.Mandelbrot Mandelbrot
         {
-            get => (List<MandelbrotPoint>) GetValue(DisplayPointsProperty);
-
-            set => SetValue(DisplayPointsProperty, value);
+            get => (Models.Mandelbrot) GetValue(MandelbrotProperty);
+            set => SetValue(MandelbrotProperty, value);
         }
 
         private void RefreshMandelbrotCanvas()
@@ -52,7 +50,7 @@ namespace Mandelbrot
             _mandelbrotBitmaps = new ConcurrentBag<SKBitmap>();
             _colors = new ConcurrentDictionary<int, SKColor>();
 
-            if (DisplayPoints?.Any() != true)
+            if (Mandelbrot?.Points.Any() != true)
             {
                 Device.BeginInvokeOnMainThread(() => { MandelCanvas.InvalidateSurface(); });
                 return;
@@ -61,29 +59,25 @@ namespace Mandelbrot
             var schedulingBitmapsStopwatch = new Stopwatch();
             schedulingBitmapsStopwatch.Start();
 
-            var chunksSize = DisplayPoints.Count / Environment.ProcessorCount;
+            var chunksSize = Mandelbrot.Points.Count / Environment.ProcessorCount;
             Task.Run(() =>
             {
                 var computingBitmapsStopwatch = new Stopwatch();
                 computingBitmapsStopwatch.Start();
-                Parallel.ForEach(DisplayPoints.GetListChunks(chunksSize), pointsChunk =>
+                Parallel.ForEach(Mandelbrot.Points.GetListChunks(chunksSize), pointsChunk =>
                 {
-                    var currentBitmap = new SKBitmap((int) MandelCanvas.CanvasSize.Width, (int) MandelCanvas.CanvasSize.Height, false);
-
-                    using (var bitmapCanvas = new SKCanvas(currentBitmap))
+                    var currentBitmap = new SKBitmap(Mandelbrot.Width, Mandelbrot.Height, false);
+                    for (var i = 0; i < pointsChunk.Count; i++)
                     {
-                        for (var i = 0; i < pointsChunk.Count; i++)
-                        {
-                            var displayPoint = pointsChunk[i];
-                            var h = ((float) displayPoint.Iterations / PureMandelbrotService.MaxIterations);
-                            var s = 1 / h;
-                            var l = 1 / h;
-                            var color = _colors.GetOrAdd(displayPoint.Iterations, SKColor.FromHsl(h, s, l));
+                        var displayPoint = pointsChunk[i];
+                        var h = ((float) displayPoint.Iterations / PureMandelbrotService.MaxIterations);
+                        var s = 1 / h;
+                        var l = 1 / h;
+                        var color = _colors.GetOrAdd(displayPoint.Iterations, SKColor.FromHsl(h, s, l));
 
-                            // Map from complex numbers to device pixels
-                            var pixelPoint = GetPixelPointFromComplexNumber(displayPoint.Complex, MandelCanvas.CanvasSize);
-                            bitmapCanvas.DrawPoint(pixelPoint, color);
-                        }
+                        // Map from complex numbers to device pixels
+                        var pixelPoint = GetPixelPointFromComplexNumber(displayPoint.Complex, MandelCanvas.CanvasSize);
+                        currentBitmap.SetPixel((int) pixelPoint.X, (int) pixelPoint.Y, color);
                     }
 
                     _mandelbrotBitmaps.Add(currentBitmap);
@@ -103,12 +97,12 @@ namespace Mandelbrot
 
         private static SKPoint GetPixelPointFromComplexNumber(Complex complex, SKSize canvasSize)
         {
-            var realRange = 1.0f - (-2.5f);
-            var realFactor = Math.Abs(complex.Re - (-2.5f)) / realRange;
+            var realRange = 1.5f - (-3.0f);
+            var realFactor = Math.Abs(complex.Re - (-3.0f)) / realRange;
             var px = realFactor * canvasSize.Width;
 
-            var imaginaryRange = 1.0f - (-1.0f);
-            var imaginaryFactor = Math.Abs(complex.Im - (-1.0f)) / imaginaryRange;
+            var imaginaryRange = 1.5f - (-1.5f);
+            var imaginaryFactor = Math.Abs(complex.Im - (-1.5f)) / imaginaryRange;
             var py = imaginaryFactor * canvasSize.Height;
 
             return new SKPoint(px, py);
@@ -146,10 +140,10 @@ namespace Mandelbrot
 
             DesiredComplexPlaneArea = new ComplexPlaneArea
             {
-                MinRe = -2.5f,
-                MaxRe = 1.0f,
-                MinIm = -1.0f,
-                MaxIm = 1.0f
+                MinRe = -3.0f,
+                MaxRe = 1.5f,
+                MinIm = -1.5f,
+                MaxIm = 1.5f
             };
 
             canvas.Clear();
