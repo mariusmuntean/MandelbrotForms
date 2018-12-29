@@ -83,7 +83,7 @@ namespace Mandelbrot
                         var color = _colors.GetOrAdd(displayPoint.Iterations, SKColor.FromHsl(h, s, l));
 
                         // Map from complex numbers to device pixels
-                        var pixelPoint = GetPixelPointFromComplexNumber(displayPoint.Complex, new SKSize(Mandelbrot.Width, Mandelbrot.Height));
+                        var pixelPoint = GetPixelPointFromComplexNumber(displayPoint.Complex, Mandelbrot);
                         currentBitmap.SetPixel((int) pixelPoint.X, (int) pixelPoint.Y, color);
                     }
 
@@ -102,15 +102,15 @@ namespace Mandelbrot
             SchedulingBitmapsDurationLbl.Text = $"Scheduling bitmaps took {schedulingBitmapsStopwatch.ElapsedMilliseconds} ms";
         }
 
-        private static SKPoint GetPixelPointFromComplexNumber(Complex complex, SKSize canvasSize)
+        private static SKPoint GetPixelPointFromComplexNumber(Complex complex, Models.Mandelbrot mandelbrot)
         {
-            var realRange = 1.5f - (-3.0f);
-            var realFactor = Math.Abs(complex.Re - (-3.0f)) / realRange;
-            var px = realFactor * canvasSize.Width;
+            var realRange = mandelbrot.BottomRight.Re - mandelbrot.TopLeft.Re;
+            var realFactor = Math.Abs(complex.Re - mandelbrot.TopLeft.Re) / realRange;
+            var px = realFactor * mandelbrot.Width;
 
-            var imaginaryRange = 1.5f - (-1.5f);
-            var imaginaryFactor = Math.Abs(complex.Im - (-1.5f)) / imaginaryRange;
-            var py = imaginaryFactor * canvasSize.Height;
+            var imaginaryRange = mandelbrot.TopLeft.Im - mandelbrot.BottomRight.Im;
+            var imaginaryFactor = Math.Abs(complex.Im - mandelbrot.BottomRight.Im) / imaginaryRange;
+            var py = imaginaryFactor * mandelbrot.Height;
 
             return new SKPoint(px, py);
         }
@@ -147,15 +147,13 @@ namespace Mandelbrot
 
             DesiredComplexPlaneArea = new ComplexPlaneArea
             {
-                MinRe = -3.0f,
-                MaxRe = 1.5f,
-                MinIm = -1.5f,
-                MaxIm = 1.5f
+                MinRe = -2f,
+                MaxRe = 1f,
+                MinIm = -1f,
+                MaxIm = 1f
             };
 
-            var scale = MandelCanvas.CanvasSize.Width / MandelCanvas.Width;
-
-            canvas.Clear(SKColors.CornflowerBlue);
+            canvas.Clear();
 
             if (_mandelbrotBitmaps?.Any() != true)
             {
@@ -178,11 +176,6 @@ namespace Mandelbrot
                     imgLeft + scaledBitmapWidth,
                     imgTop + scaledBitmapHeight);
                 canvas.DrawImage(SKImage.FromBitmap(skBitmap), dest, _bitmapPaint);
-
-                canvas.DrawCircle(dest.Left, dest.Top, 10, _bitmapPaint);
-                canvas.DrawCircle(dest.Left, dest.Bottom, 10, _bitmapPaint);
-                canvas.DrawCircle(dest.Right, dest.Top, 10, _bitmapPaint);
-                canvas.DrawCircle(dest.Right, dest.Bottom, 10, _bitmapPaint);
             }
 
             LastDrawDurationLbl.Text = $"last draw took {stopwatch.ElapsedMilliseconds} ms";
