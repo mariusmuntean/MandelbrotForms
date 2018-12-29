@@ -17,6 +17,13 @@ namespace Mandelbrot
         private ConcurrentBag<SKBitmap> _mandelbrotBitmaps;
         private ConcurrentDictionary<int, SKColor> _colors;
 
+        private readonly SKPaint _bitmapPaint = new SKPaint
+        {
+            Color = SKColors.Plum,
+            IsAntialias = true,
+            FilterQuality = SKFilterQuality.Medium
+        };
+
         public MainPage()
         {
             InitializeComponent();
@@ -76,7 +83,7 @@ namespace Mandelbrot
                         var color = _colors.GetOrAdd(displayPoint.Iterations, SKColor.FromHsl(h, s, l));
 
                         // Map from complex numbers to device pixels
-                        var pixelPoint = GetPixelPointFromComplexNumber(displayPoint.Complex, MandelCanvas.CanvasSize);
+                        var pixelPoint = GetPixelPointFromComplexNumber(displayPoint.Complex, new SKSize(Mandelbrot.Width, Mandelbrot.Height));
                         currentBitmap.SetPixel((int) pixelPoint.X, (int) pixelPoint.Y, color);
                     }
 
@@ -146,8 +153,9 @@ namespace Mandelbrot
                 MaxIm = 1.5f
             };
 
-            canvas.Clear();
-            canvas.Translate(info.Width / 2.0f, info.Height / 2.0f);
+            var scale = MandelCanvas.CanvasSize.Width / MandelCanvas.Width;
+
+            canvas.Clear(SKColors.CornflowerBlue);
 
             if (_mandelbrotBitmaps?.Any() != true)
             {
@@ -155,16 +163,26 @@ namespace Mandelbrot
             }
 
             // Draw each bitmap on top of the next one. Also scaled.
-            var scalingFactor = Math.Min(_mandelbrotBitmaps.First().Width / info.Width, _mandelbrotBitmaps.First().Height / info.Height);
+            var scalingFactor = Math.Min(((float) info.Width) / _mandelbrotBitmaps.First().Width, ((float) info.Height) / _mandelbrotBitmaps.First().Height);
 
+            var scaledBitmapWidth = _mandelbrotBitmaps.First().Width * scalingFactor;
+            var scaledBitmapHeight = _mandelbrotBitmaps.First().Height * scalingFactor;
+
+            var imgTop = (info.Height - scaledBitmapHeight) / 2.0f;
+            var imgLeft = (info.Width - scaledBitmapWidth) / 2.0f;
 
             foreach (var skBitmap in _mandelbrotBitmaps)
             {
-                var dest = new SKRect(-info.Width * scalingFactor / 2.0f,
-                    -info.Height * scalingFactor / 2.0f,
-                    info.Width * scalingFactor / 2.0f,
-                    info.Height * scalingFactor / 2.0f);
-                canvas.DrawBitmap(skBitmap, dest);
+                var dest = new SKRect(imgLeft,
+                    imgTop,
+                    imgLeft + scaledBitmapWidth,
+                    imgTop + scaledBitmapHeight);
+                canvas.DrawImage(SKImage.FromBitmap(skBitmap), dest, _bitmapPaint);
+
+                canvas.DrawCircle(dest.Left, dest.Top, 10, _bitmapPaint);
+                canvas.DrawCircle(dest.Left, dest.Bottom, 10, _bitmapPaint);
+                canvas.DrawCircle(dest.Right, dest.Top, 10, _bitmapPaint);
+                canvas.DrawCircle(dest.Right, dest.Bottom, 10, _bitmapPaint);
             }
 
             LastDrawDurationLbl.Text = $"last draw took {stopwatch.ElapsedMilliseconds} ms";
